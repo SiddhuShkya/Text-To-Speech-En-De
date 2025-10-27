@@ -1,4 +1,5 @@
 import os
+import re
 import shutil
 import torch
 import streamlit as st  # type: ignore
@@ -16,6 +17,16 @@ os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
 # -------------------------------
 OUTPUT_DIR = "audios"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
+
+
+# -------------------------------
+# 🔹 Sanitize filenames
+# -------------------------------
+def sanitize_filename(name: str) -> str:
+    """Replace unsafe characters in filenames with underscores."""
+    name = name.strip().lower()
+    # Only allow letters, numbers, dash, underscore
+    return re.sub(r"[^a-z0-9_\-]", "_", name)
 
 
 # -------------------------------
@@ -84,13 +95,12 @@ def generate_german_audio(text: str) -> str:
 
 
 # -------------------------------
-# 🔹 Helper: Generate filename
+# 🔹 Generate safe filename
 # -------------------------------
 def get_audio_filename(english_text: str) -> str:
-    """Create a file name from first 8 words of English text."""
     words = english_text.strip().lower().split()[:8]
-    filename = "_".join(words) + ".mp3"
-    return filename
+    base_name = "_".join(words)
+    return f"{sanitize_filename(base_name)}.mp3"
 
 
 # -------------------------------
