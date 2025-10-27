@@ -1,4 +1,5 @@
 import os
+import shutil
 import torch
 import streamlit as st
 from transformers import M2M100ForConditionalGeneration, M2M100Tokenizer
@@ -7,6 +8,10 @@ import tempfile
 
 # Optional: Reduce CUDA fragmentation
 os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
+
+# Ensure output folder exists
+OUTPUT_DIR = "audios"
+os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 
 # -------------------------------
@@ -62,6 +67,16 @@ def generate_german_audio(text: str) -> str:
 
 
 # -------------------------------
+# 🔹 Helper to create filename from first 5 English words
+# -------------------------------
+def get_audio_filename(english_text: str) -> str:
+    words = english_text.strip().lower().split()
+    words = words[:8]  # first 5 words
+    filename = "_".join(words) + ".mp3"
+    return filename
+
+
+# -------------------------------
 # 🔹 Streamlit App
 # -------------------------------
 def main():
@@ -86,7 +101,7 @@ def main():
     # Load translation model
     tokenizer, model, device = get_translation_model()
 
-    col1, col2, _ = st.columns([5, 5, 2], gap="small")
+    col1, col2, col3 = st.columns([5, 5, 5], gap="small")
     with col1:
         with st.container(border=True):
             english_text = st.text_area(
@@ -115,8 +130,17 @@ def main():
                 "🇩🇪 German Translation:", value=german_text, height=250, disabled=True
             )
 
+        # Display audio player and Save button side-by-side
         if "audio_path" in st.session_state:
-            st.audio(st.session_state["audio_path"], format="audio/mp3")
+            audio_col1, audio_col2 = st.columns([8.5, 1.5])
+            with audio_col1:
+                st.audio(st.session_state["audio_path"], format="audio/mp3")
+            with audio_col2:
+                if st.button("💾 Audio"):
+                    filename = get_audio_filename(english_text)
+                    save_path = os.path.join(OUTPUT_DIR, filename)
+                    shutil.copy(st.session_state["audio_path"], save_path)
+                    st.toast(f"✅ Audio saved to `{save_path}`")
 
 
 # -------------------------------
