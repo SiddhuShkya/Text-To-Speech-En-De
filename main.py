@@ -1,42 +1,126 @@
 import os
 import torch
-import requests
-from dotenv import load_dotenv  # type: ignore
+import streamlit as st
+from transformers import M2M100ForConditionalGeneration, M2M100Tokenizer
+from gtts import gTTS
+import tempfile
 
-# Load environment variables
-load_dotenv()
-API_TOKEN = os.getenv("HUGGINGFACEHUB_API_TOKEN")
-
-if not API_TOKEN:
-    raise ValueError("❌ Missing HUGGINGFACEHUB_API_TOKEN in your .env file!")
-
-# CUDA check
-if torch.cuda.is_available():
-    print(f"✅ CUDA detected: {torch.cuda.get_device_name(0)}")
-else:
-    print("⚠️ CUDA not available — using CPU")
-
-# ✅ Working translation model
-API_URL = "https://api-inference.huggingface.co/models/Helsinki-NLP/opus-mt-en-de"
-headers = {"Authorization": f"Bearer {API_TOKEN}"}
+# Optional: Reduce CUDA fragmentation
+os.environ["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
 
 
-def translate_en_to_de(text: str) -> str:
-    """Translate English → German using Hugging Face Inference API."""
-    payload = {"inputs": text}
-    response = requests.post(API_URL, headers=headers, json=payload)
+# -------------------------------
+# 🔹 Load translation model once per session
+# -------------------------------
+def get_translation_model():
+    if "tokenizer" not in st.session_state or "model" not in st.session_state:
+        model_name = "facebook/m2m100_418M"
+        st.session_state.tokenizer = M2M100Tokenizer.from_pretrained(model_name)
+        st.session_state.model = M2M100ForConditionalGeneration.from_pretrained(
+            model_name
+        )
 
-    if response.status_code != 200:
-        raise Exception(f"API Error {response.status_code}: {response.text}")
+        if torch.cuda.is_available():
+            st.session_state.device = "cuda"
+            st.session_state.model.to("cuda")
+            st.success(f"✅ CUDA detected: {torch.cuda.get_device_name(0)}")
+        else:
+            st.session_state.device = "cpu"
+            st.warning("⚠️ CUDA not available — using CPU")
 
-    data = response.json()
-    if isinstance(data, list) and "translation_text" in data[0]:
-        return data[0]["translation_text"]
-    return str(data)
+    return st.session_state.tokenizer, st.session_state.model, st.session_state.device
 
 
+# -------------------------------
+# 🔹 Translation function
+# -------------------------------
+def translate_en_to_de(text: str, tokenizer, model, device: str) -> str:
+    tokenizer.src_lang = "en"
+    encoded = tokenizer(text, return_tensors="pt").to(device)
+
+    with torch.no_grad():
+        generated_tokens = model.generate(
+            **encoded,
+            forced_bos_token_id=tokenizer.get_lang_id("de"),
+            max_length=256,
+        )
+
+    translation = tokenizer.batch_decode(generated_tokens, skip_special_tokens=True)[0]
+    torch.cuda.empty_cache()
+    return translation
+
+
+# -------------------------------
+# 🔹 Generate German Speech with gTTS
+# -------------------------------
+def generate_german_audio(text: str) -> str:
+    """Convert German text to speech (MP3) and return temp file path."""
+    tts = gTTS(text=text, lang="de")
+    temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".mp3").name
+    tts.save(temp_file)
+    return temp_file
+
+
+# -------------------------------
+# 🔹 Streamlit App
+# -------------------------------
+def main():
+    st.set_page_config(page_title="English → German + Speech", layout="wide")
+    st.title("🗣️ English → German Translator with Speech")
+    st.write("---")
+
+    # Custom styling
+    st.markdown(
+        """
+        <style>
+        textarea {
+            font-size: 24px !important;
+            line-height: 1.6 !important;
+            font-family: 'Segoe UI', sans-serif !important;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    # Load translation model
+    tokenizer, model, device = get_translation_model()
+
+    col1, col2, _ = st.columns([5, 5, 2], gap="small")
+    with col1:
+        with st.container(border=True):
+            english_text = st.text_area(
+                "Enter English Text:",
+                placeholder="Type your English sentence here...",
+                height=250,
+                key="input_text",
+            )
+        translate_button = st.button("Translate", use_container_width=True)
+
+    if translate_button and english_text.strip():
+        with st.spinner("⏳ Translating..."):
+            german_text = translate_en_to_de(english_text, tokenizer, model, device)
+            st.session_state["translated_text"] = german_text
+
+        with st.spinner("🎧 Generating German speech..."):
+            audio_path = generate_german_audio(german_text)
+            st.session_state["audio_path"] = audio_path
+
+    with col2:
+        with st.container(border=True):
+            german_text = st.session_state.get(
+                "translated_text", "The translated text will appear here."
+            )
+            st.text_area(
+                "🇩🇪 German Translation:", value=german_text, height=250, disabled=True
+            )
+
+        if "audio_path" in st.session_state:
+            st.audio(st.session_state["audio_path"], format="audio/mp3")
+
+
+# -------------------------------
+# 🔹 Entry point
+# -------------------------------
 if __name__ == "__main__":
-    english_text = input("Enter English text to translate into German: ").strip()
-    print("⏳ Translating via Hugging Face API...")
-    german_text = translate_en_to_de(english_text)
-    print("\n🇩🇪 German Translation:\n", german_text)
+    main()
