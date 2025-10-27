@@ -1,0 +1,6 @@
+[theme]
+primaryColor="#E50914"               # Netflix red
+backgroundColor="#141414"            # deep black background
+secondaryBackgroundColor="#181818"   # slightly lighter for panels
+textColor="#FFFFFF"                  # white text
+font="sans serif"
