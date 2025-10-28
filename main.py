@@ -203,36 +203,40 @@ def main():
                 label_visibility="collapsed",
             )
             if selected_audio != "Select an audio":
-                matched_file = [
-                    f
-                    for f in saved_files
-                    if selected_audio.lower().replace(" ", "_") in f.lower()
-                ]
-                if matched_file:
-                    file_path = os.path.join(OUTPUT_DIR, matched_file[0])
-                    audio_col1, audio_col2 = st.columns([10, 2])
-                    with audio_col1:
-                        st.audio(file_path, format="audio/mp3")
-                    with audio_col2:
-                        if st.button("🗑️ Delete Audio", key=f"del_{matched_file[0]}"):
-                            st.session_state.delete_pending = file_path
-                            st.rerun()
+                with st.container(border=True):
+                    matched_file = [
+                        f
+                        for f in saved_files
+                        if selected_audio.lower().replace(" ", "_") in f.lower()
+                    ]
+                    if matched_file:
+                        file_path = os.path.join(OUTPUT_DIR, matched_file[0])
+                        audio_col1, audio_col2 = st.columns([10, 2])
+                        with audio_col1:
+                            st.audio(file_path, format="audio/mp3")
+                        with audio_col2:
+                            if st.button(
+                                "🗑️ Delete Audio", key=f"del_{matched_file[0]}"
+                            ):
+                                st.session_state.delete_pending = file_path
+                                st.rerun()
 
     # Right Panel — List All Saved Files
     with c1:
         if saved_files:
             st.write("#### 📂 :green[Saved German Audios]")
-            for idx, f in enumerate(saved_files):
-                display_name = f.replace(".mp3", "").replace("_", " ").title()
-                file_path = os.path.join(OUTPUT_DIR, f)
-                with st.expander(f"{display_name}"):
-                    audio_col1, audio_col2 = st.columns([10, 2])
-                    with audio_col1:
-                        st.audio(file_path, format="audio/mp3")
-                    with audio_col2:
-                        if st.button("🗑️ Delete Audio", key=f"del_{idx}"):
-                            st.session_state.delete_pending = file_path
-                            st.rerun()
+            with st.container(border=True, height=400):
+                for idx, f in enumerate(saved_files):
+                    display_name = f.replace(".mp3", "").replace("_", " ").title()
+                    file_path = os.path.join(OUTPUT_DIR, f)
+                    with st.expander(f"{display_name}"):
+                        audio_col1, audio_col2 = st.columns([10, 2])
+                        with audio_col1:
+                            st.audio(file_path, format="audio/mp3")
+                        with audio_col2:
+                            if st.button("🗑️ Delete Audio", key=f"del_{idx}"):
+                                st.session_state.delete_pending = file_path
+                                st.rerun()
 
 
 # -------------------------------
