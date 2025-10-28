@@ -1,13 +1,13 @@
 # 🗣️ English → German Text-to-Speech (TTS) App
 
-> A web application that translates **English text into German** using the **M2M100 multilingual model** and generates **German speech** via **gTTS**. The system provides **interactive text display**, **audio playback**, and allows users to **save or delete generated audio files**. Supports **GPU acceleration** with Docker for faster translation.
+> A web application that translates **English text into German** using the **Helsinki-NLP MarianMT model** and generates **German speech** via **gTTS**. The system provides **interactive text display**, **audio playback**, and allows users to **save or delete generated audio files**. Supports **GPU acceleration** with Docker for faster translation.
 
 ---
 
 ## 📌 What It Does
 
-- Translates English sentences into German.
-- Generates German speech audio (MP3) from the translated text.
+- Translates English sentences into **natural, idiomatic German**.
+- Generates **German speech audio (MP3)** from the translated text.
 - Allows playback of generated audio inside the app.
 - Save audio files for later use or delete them.
 - Optional GPU support for faster translations using **PyTorch + CUDA**.
@@ -18,20 +18,20 @@
 
 ## 🛠️ Technology Stack
 
-| Category        | Tools |
-|-----------------|-------|
-| **Programming** | Python 3.12 |
-| **Framework**   | Streamlit |
-| **Machine Learning** | Transformers (M2M100) |
+| Category            | Tools |
+|---------------------|-------|
+| **Programming**     | Python 3.12 |
+| **Framework**       | Streamlit |
+| **Machine Learning**| Transformers (Helsinki-NLP MarianMT) |
 | **Text-to-Speech**  | gTTS |
-| **Audio Handling**   | tempfile, shutil |
-| **Containerization** | Docker (CPU/GPU) |
+| **Audio Handling**  | tempfile, shutil |
+| **Containerization**| Docker (CPU/GPU) |
 
 ---
 
 ## 🔥 Key Features
 
-- ✅ **Multilingual Translation** – English → German using M2M100.
+- ✅ **Accurate Translation** – English → German using Helsinki-NLP MarianMT for natural, idiomatic results.
 - 🎧 **Speech Synthesis** – Generate German MP3 audio via gTTS.
 - 💾 **Save & Delete Audio** – Manage audio files within the app.
 - 🖥️ **GPU Acceleration** – Optional PyTorch + CUDA for faster inference.
