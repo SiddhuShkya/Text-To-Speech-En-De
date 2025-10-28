@@ -91,17 +91,16 @@ http://localhost:8501
 ### **1. Build the Docker Image**
 
 ```bash
-sudo docker build -t tts-en-de-gpu .
+sudo docker build -t tts-en-de-cpu .
 ```
 
-### **2. Run the container on GPU with persistent audio storage**
+### **2. Run the container on CPU with persistent audio storage**
 
 ```bash
-sudo docker run --gpus all -p 8501:8501 -v $(pwd)/audios:/app/audios tts-en-de-gpu
+sudo docker run -p 8501:8501 -v $(pwd)/audios:/app/audios tts-en-de-cpu
 ```
-- `--gpus all` → makes your NVIDIA GPU (GTX 1650) available inside the container.
-- `-p 8501:8501` → maps Streamlit’s port to your host.
-- `-v $(pwd)/audios:/app/audios` → saves generated audio files outside the container.
+- `-p 8501:8501` → maps Streamlit port to your host.
+- `-v $(pwd)/audios:/app/audios` → keeps generated MP3s even after the container stops.
 
 ### **3. Open in Browser**
 

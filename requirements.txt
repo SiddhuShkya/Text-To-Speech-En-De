@@ -6,3 +6,4 @@ numpy==1.26.4
 soundfile==0.13.1
 requests==2.32.5
 sentencepiece==0.1.99
+sacremoses>=0.0.53
