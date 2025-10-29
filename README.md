@@ -4,6 +4,14 @@
 
 ---
 
+## 🖼️ Screenshots
+
+| Dark Mode | Light Mode |
+|:----------:|:-----------:|
+| ![Dark Mode](screenshots/dark.png) | ![Light Mode](screenshots/light.png) |
+
+---
+
 ## 📌 What It Does
 
 - Translates English sentences into **natural, idiomatic German**.
@@ -48,6 +56,7 @@
 ├── 📄 main.py           # Streamlit application
 ├── 📄 requirements.txt  # Python dependencies
 ├── 📂 audios/           # Optional: saved MP3 files (persist via volume)
+├── 📂 screenshots/      # screenshot of the web app
 ├── 📄 Dockerfile        # Docker configuration (CPU/GPU)
 ├── 📄 .dockerignore     # Files/Folders ignored by Docker
 ├── 📄 README.md         # Project documentation
